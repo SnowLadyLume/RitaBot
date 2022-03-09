@@ -1,4 +1,6 @@
+/* eslint-disable quotes */
 /*eslint-disable*/
+
 // ------------------------------------------------------------
 // Add Your Discord Bot Token here
 // Discord Dev > My Apps > Bot > App Bot User > Token > Reveal
@@ -7,19 +9,36 @@
 
 exports.token = process.env.DISCORD_TOKEN;
 
+//--------------
+// Top.gg Token
+// -------------
+
+exports.topggToken = process.env.TOPGG_TOKEN
+
 // ----------------------------------------------------------------------
 // Add your Discord Main User ID here
 // In Discord, Go to Settings > Appearance > Enable Developer Mode
 // Right click your user in channel/message and pick "Copy ID" to obtain
 // ----------------------------------------------------------------------
 
-exports.botOwner = process.env.DISCORD_BOT_OWNER_ID;
+if (!process.env.DISCORD_BOT_OWNER_ID)
+{
+
+   exports.botOwner = [0];
+
+}
+else
+{
+
+   exports.botOwner = process.env.DISCORD_BOT_OWNER_ID.split(',');
+
+}
 
 // ----------------------------------------------------------------
 // Number of shards to spawn in sharding manager (large bots only)
 // ----------------------------------------------------------------
 
-exports.shards = 2;
+exports.shards = "auto";
 
 // --------------------
 // Invite URL (OAuth2)
@@ -53,6 +72,16 @@ exports.donation = "https://opencollective.com/ritabot-project";
 
 exports.changelog = null;
 
+// -------
+// Timing
+// -------
+
+exports.time = {
+   "long": 60000,
+   "mid,": 30000,
+   "short": 15000
+};
+
 // ---------------
 // Developer Mode
 // ---------------
@@ -61,4 +90,5 @@ exports.dev = process.env.DEBUG;
 
 exports.messagedebug = process.env.MESSAGE_DEBUG;
 
-exports.devID = ['211938703591997451','469824032351584278','536012252831285258','488871621424054284','735457815514185788','827301550249476117'];
+exports.devID = ['211938703591997451', '469824032351584278', '536012252831285258', '488871621424054284', '735457815514185788', '827301550249476117', '446500198433161216', '277068610692972544'];
+

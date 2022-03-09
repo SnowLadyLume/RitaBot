@@ -81,11 +81,12 @@ module.exports = function run (data)
                `**\`${data.cmd.server[0].activeUserTasks}\`**  users\n\n` +
                `:person_facepalming: Users in Server: **\`${data.message.channel.guild.memberCount}\`**\n\n` +
                `:inbox_tray: Embedded Message Status: **\`${data.cmd.server[0].embedstyle}\`**\n\n` +
+               `:grey_question: Language Detection: **\`${data.cmd.server[0].langdetect}\`**\n\n` +
                `:robot: Bot to Bot Translation Status: **\`${data.cmd.server[0].bot2botstyle}\`**\n\n` +
                `:information_source: Webhook Debug Active State: **\`${data.cmd.server[0].webhookactive}\`**`;
 
          serverTranslationStats =
-               `**\`\`\`${data.message.channel.guild.name} - Server Tranlation Stats\`\`\`**\n` +
+               `**\`\`\`${data.message.channel.guild.name} - Server Translation Stats\`\`\`**\n` +
                `:bar_chart:  In total **\`${data.cmd.server[0].message}\`** messages in this server have been sent\n\n` +
                `:chart_with_upwards_trend:  RITA has translated **\`${data.cmd.server[0].translation}\`**  for this server\n\n` +
                `:frame_photo:  A total of **\`${data.cmd.server[0].images}\`**  images have been sent and **\`${data.cmd.server[0].gif}\`** Gif's have been shared\n\n` +
@@ -117,7 +118,7 @@ module.exports = function run (data)
 
       data.color = "info";
 
-      // Special case: !t stats global
+      // Special case: !tr stats global
       if (data.cmd.params && data.cmd.params.toLowerCase().includes("global"))
       {
 
@@ -131,7 +132,7 @@ module.exports = function run (data)
 
       }
 
-      // Only '!t stats global' is allowed with dm
+      // Only '!tr stats global' is allowed with dm
       if (data.message.channel.type === "dm")
       {
 
@@ -167,7 +168,7 @@ module.exports = function run (data)
 
       }
 
-      // Case: !t stats server
+      // Case: !tr stats server
       if (data.cmd.params && data.cmd.params.toLowerCase().includes("server"))
       {
 
@@ -184,16 +185,24 @@ module.exports = function run (data)
 
          }
          // eslint-disable-next-line no-unused-vars
-         const serverID = data.cmd.params.split(" ")[1].toLowerCase();
+         const serverID = data.cmd.num;
          const target = data.message.client.guilds.cache.get(serverID);
 
          db.getServerInfo(
             serverID,
-            function getServerInfo (server)
+            async function getServerInfo (server)
             {
 
                if (!target)
                {
+
+                  if (server.length === 0)
+                  {
+
+                     data.text = `\`\`\`${serverID} is not registered in the database.\n\n\`\`\``;
+                     return sendMessage(data);
+
+                  }
 
                   const targetServer = `**\`\`\`${serverID} - Server Tranlation Stats\`\`\`**\n` +
                      `Server Joined Rita Network: \`\`\`${server[0].createdAt}\`\`\`\n` +
@@ -213,11 +222,14 @@ module.exports = function run (data)
                   return sendMessage(data);
 
                }
-               if (target.owner)
+
+               const owner = await target.members.fetch(target.ownerID);
+               if (owner)
                {
 
                   const targetServer = `**\`\`\`${target.name} - Server Tranlation Stats\`\`\`**\n` +
-                  `Server Owner: ${target.owner}\n\n` +
+                  `Server Owner: ${owner}\n` +
+                  `Owner Tag: ${owner.user.tag}\n\n` +
                   `Server Joined Rita Network: \`\`\`${server[0].createdAt}\`\`\`\n` +
                   `:bar_chart:  In total **\`${server[0].message}\`** messages in this server have been sent\n\n` +
                   `:chart_with_upwards_trend:  RITA has translated **\`${server[0].translation}\`**  for this server\n\n` +
@@ -230,7 +242,7 @@ module.exports = function run (data)
                   data.text = `${targetServer}\n\n`;
 
                }
-               else if (!target.owner)
+               else if (!owner)
                {
 
                   const targetServer = `**\`\`\`${target.name} - Server Tranlation Stats\`\`\`**\n` +
@@ -265,7 +277,53 @@ module.exports = function run (data)
                serverID
             );
 
-            data.text = `\`\`\`${serverID} is not registered in the database.\n\n\`\`\``;
+            data.text = `\`\`\`Critical Stats Error, Zycore Broke it.\n\n\`\`\``;
+            return sendMessage(data);
+
+         });
+
+      }
+
+      if (data.cmd.params && data.cmd.params.toLowerCase().includes("bot"))
+      {
+
+         const serverID = "bot";
+
+         db.getServerInfo(
+            serverID,
+            function getServerInfo (server)
+            {
+
+               if (server.length === 0)
+               {
+
+                  data.text = `\`\`\`${serverID} ERROR\n\n\`\`\``;
+                  return sendMessage(data);
+
+               }
+
+               const targetServer = `:bar_chart:  In total **\`${server[0].errorcount}\`** messages have failed to translate.\n\n`;
+
+               data.text = `${targetServer}\n\n`;
+
+               // -------------
+               // Send message
+               // -------------
+
+               return sendMessage(data);
+
+            }
+         ).catch((err) =>
+         {
+
+            console.log(
+               "error",
+               err,
+               "warning",
+               serverID
+            );
+
+            data.text = `\`\`\`Critical Stats Bot Error, Zycore Broke it.\n\n\`\`\``;
             return sendMessage(data);
 
          });
@@ -275,14 +333,14 @@ module.exports = function run (data)
       if (data.cmd.params && data.cmd.params.toLowerCase().includes("debug"))
       {
 
-         AreDev: if (!process.env.DISCORD_BOT_OWNER_ID.includes(data.message.author.id))
+         Override: if (!data.message.isBotOwner)
          {
 
-            if (auth.devID.includes(data.message.author.id))
+            if (data.message.isDev)
             {
 
                // console.log("DEBUG: Developer ID Confirmed");
-               break AreDev;
+               break Override;
 
             }
 
